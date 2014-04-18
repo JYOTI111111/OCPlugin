@@ -5,7 +5,6 @@
     <maven>3.0</maven>
   </prerequisites>
 
-
   <parent>
     <groupId>org.opendaylight.oc</groupId>
     <artifactId>commons.oc</artifactId>
