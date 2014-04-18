@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.opendaylight.oc</groupId>
+		<artifactId>commons.oc</artifactId>
+		<version>1.4.2-SNAPSHOT</version>
+		<relativePath>../commons/parent</relativePath>
+	</parent>
+	<artifactId>oc.neutron</artifactId>
+	<version>0.4.2-SNAPSHOT</version>
+	<packaging>bundle</packaging>
+<repositories>
+    <repository>
+      <id>juniper-contrail</id>
+      <url>http://juniper.github.io/contrail-maven/snapshots</url>
+    </repository>
+    <repository>
+      <id>opendaylight-release</id>
+      <url>http://nexus.opendaylight.org/content/repositories/opendaylight.release/</url>
+    </repository>
+  </repositories>
+	<!-- <scm> <connection>scm:git:ssh://git.opendaylight.org:29418/ovsdb.git</connection> 
+		<developerConnection>scm:git:ssh://git.opendaylight.org:29418/ovsdb.git</developerConnection> 
+		<url>https://wiki.opendaylight.org/view/OVSDB_Integration:Main</url> <tag>HEAD</tag> 
+		</scm> -->
+
+	<properties>
+		<guava.version>14.0.1</guava.version>
+		<xtend.version>2.4.3</xtend.version>
+		<bundle.plugin.version>2.4.0</bundle.plugin.version>
+		<maven.clean.plugin.version>2.5</maven.clean.plugin.version>
+	</properties>
+	<build>
+		<defaultGoal>install</defaultGoal>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>2.3.6</version>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Import-Package>
+						<!-- net.juniper.contrail.api.types;uses:="com.google.common.
+ collect,net.juniper.contrail.api";version="1.0.0.SNAPSHOT",net.juniper.
+ contrail.api;uses:="org.apache.log4j,com.google.gson,org.apache.http.me
+ ssage,org.apache.http.protocol,com.google.common.collect,org.apache.htt
+ p.impl,org.apache.http.params,org.apache.http.entity,org.apache.commons
+ .lang,org.apache.http.util,org.apache.http,com.google.common.net,net.ju
+ niper.contrail.api.types";version="1.0.0.SNAPSHOT" -->
+							org.opendaylight.controller.networkconfig.neutron,
+							org.opendaylight.controller.sal.core,
+							org.opendaylight.controller.sal.utils,
+							<!-- net.juniper.contrail.api;version="1.0.0", -->
+							org.opendaylight.oc.plugin,
+							org.opendaylight.controller.sal.binding.api,
+							org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819,
+							org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes,
+							org.opendaylight.yangtools.yang.binding,
+							org.apache.felix.dm,
+							org.slf4j,
+							org.apache.http.*;version="4.3.2",
+							org.osgi.framework,
+							<!-- org.apache.httpcomponents;version="4.1.1", -->
+							<!-- !com.barchart.udt.*,
+							!com.google.protobuf.*,
+							!com.ibm.uvm.tools.*,
+							!com.jcraft.jzlib.*,
+							!com.sun.jdmk.comm.*,
+							!com.sun.nio.sctp.*, -->
+							*
+						</Import-Package>
+						<Bundle-Activator>
+							org.opendaylight.oc.neutron.Activator
+						</Bundle-Activator>
+						<Embed-Dependency>httpclient,httpcore;type=!pom;inline=false</Embed-Dependency>
+						<Export-Package>
+							net.juniper.contrail.api.*;version="1.0-SNAPSHOT"
+							<!-- org.apache.httpcomponents;version="4.3.2" -->
+						</Export-Package>
+						<manifestLocation>${project.basedir}/META-INF</manifestLocation>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<!-- <distributionManagement> <repository> <id>repo</id> <url>https://github.com/Juniper/contrail-maven/raw/master/releases</url> 
+		</repository> <snapshotRepository> <id>snapshot-repo</id> <url>https://github.com/Juniper/contrail-maven/raw/master/snapshots</url> 
+		</snapshotRepository> </distributionManagement> -->
+	<dependencies>
+	<dependency>
+      <groupId>net.juniper.contrail</groupId>
+      <artifactId>juniper-contrail-api</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+	<!-- <dependency>
+        <groupId>org.opendaylight.controller</groupId>
+        <artifactId>commons.httpclient</artifactId>
+        <version>0.1.2-SNAPSHOT</version>
+      </dependency> -->
+ <!--      <dependency>
+		<groupId>commons-lang</groupId>
+		<artifactId>commons-lang</artifactId>
+		<version>2.3</version>
+		</dependency> -->
+		<dependency>
+			<groupId>org.opendaylight.oc</groupId>
+			<artifactId>oc</artifactId>
+			<version>0.4.2-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.opendaylight.controller</groupId>
+			<version>0.4.1</version>
+			<artifactId>networkconfig.neutron</artifactId>
+		</dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.10</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>14.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.2.4</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.httpcomponents</groupId>
+    	<artifactId>httpcore</artifactId>
+    	<version>4.3.2</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.httpcomponents</groupId>
+    	<artifactId>httpclient</artifactId>
+    	<version>4.3.2</version>
+    </dependency>
+     <dependency>
+    	<groupId>commons-lang</groupId>
+    	<artifactId>commons-lang</artifactId>
+    	<version>2.3</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.commons</groupId>
+    	<artifactId>commons-exec</artifactId>
+    	<version>1.1</version>
+    </dependency>
+    <dependency>
+    	<groupId>log4j</groupId>
+    	<artifactId>log4j</artifactId>
+    	<version>1.2.16</version>
+    </dependency>
+		<!-- <dependency> <groupId>org.opendaylight.controller</groupId> <artifactId>switchmanager</artifactId> 
+			<version>0.7.0</version> </dependency> <dependency> <groupId>org.opendaylight.controller</groupId> 
+			<artifactId>forwardingrulesmanager</artifactId> <version>0.5.0</version> 
+			</dependency> -->
+		<dependency>
+			<groupId>org.opendaylight.controller</groupId>
+			<artifactId>sal</artifactId>
+			<version>0.7.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.opendaylight.controller</groupId>
+			<artifactId>containermanager</artifactId>
+			<version>0.5.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.opendaylight.controller</groupId>
+			<artifactId>sal-binding-api</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.opendaylight.controller.model</groupId>
+			<artifactId>model-flow-service</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.opendaylight.controller.model</groupId>
+			<artifactId>model-flow-base</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.opendaylight.controller.model</groupId>
+			<artifactId>model-flow-management</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.opendaylight.controller.model</groupId>
+			<artifactId>model-inventory</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<!-- <dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>14.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.2.4</version>
+		</dependency>
+		
+		<dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.1</version>
+      </dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-exec</artifactId>
+			<version>1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.16</version>
+		</dependency> -->
+		<!-- <dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+			<version>4.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.1.1</version>
+		</dependency> -->
+		<dependency>
+			<groupId>org.opendaylight.yangtools</groupId>
+			<artifactId>yang-binding</artifactId>
+			<version>0.6.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.opendaylight.controller</groupId>
+			<artifactId>sal-common-util</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<!-- <dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency> -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.9.5</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>1.5.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+			<version>1.5.2</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

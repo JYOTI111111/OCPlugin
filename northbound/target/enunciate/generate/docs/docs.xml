@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api-docs title="oc Table operations over REST">
+  <data>
+  </data>
+  <soap>
+    <wsdls>
+    </wsdls>
+  </soap>
+  <rest baseAddress="http://localhost:8080/full" wadl="application.wadl">
+    <resources>
+      <resource name="/node/{nodeType}/{nodeId}/tables/{tableName}/rows" subcontext="/oc/nb/v2">
+        <groups>
+          <group>OVSDBNorthbound</group>
+        </groups>
+        <operation name="POST">
+          <documentation>
+            <![CDATA[Create a Row]]>
+          </documentation>
+          <contentType type="*/*" consumable="false" produceable="true"/>
+          <contentType type="application/xml" consumable="false" produceable="true"/>
+          <contentType type="application/json" consumable="true" produceable="false"/>
+          <parameter name="nodeType" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[(no documentation provided)]]>
+          </parameter>
+          <parameter name="nodeId" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[(no documentation provided)]]>
+          </parameter>
+          <parameter name="tableName" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[name of the ovsdb table]]>
+          </parameter>
+          <inValue>
+            
+            
+            <documentation><![CDATA[the OVSDBRow Row that is being inserted]]></documentation>
+          </inValue>
+          <outValue>
+            
+            
+            <documentation><![CDATA[Response as dictated by the HTTP Response Status code
+
+<pre>
+Example:
+
+Request URL:
+https://localhost/controller/nb/v2/ovsdb/tables/bridge/rows
+</pre>]]></documentation>
+          </outValue>
+          <statusCode code="201">
+            <![CDATA[Row Inserted successfully]]>
+          </statusCode>
+          <statusCode code="400">
+            <![CDATA[Invalid data passed]]>
+          </statusCode>
+          <statusCode code="401">
+            <![CDATA[User not authorized to perform this operation]]>
+          </statusCode>
+        </operation>
+        <operation name="GET">
+          <documentation>
+            <![CDATA[Read all Rows of a table]]>
+          </documentation>
+          <contentType type="*/*" consumable="false" produceable="true"/>
+          <contentType type="application/xml" consumable="false" produceable="true"/>
+          <contentType type="application/json" consumable="true" produceable="false"/>
+          <parameter name="nodeType" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[(no documentation provided)]]>
+          </parameter>
+          <parameter name="nodeId" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[(no documentation provided)]]>
+          </parameter>
+          <parameter name="tableName" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[name of the ovsdb table]]>
+          </parameter>
+          <outValue>
+            
+            
+            <documentation><![CDATA[All the Rows of a table
+
+<pre>
+Example:
+
+Request URL:
+https://localhost/controller/nb/v2/ovsdb/tables/bridge/rows
+</pre>]]></documentation>
+          </outValue>
+          <statusCode code="200">
+            <![CDATA[Row Updated successfully]]>
+          </statusCode>
+          <statusCode code="400">
+            <![CDATA[Invalid data passed]]>
+          </statusCode>
+          <statusCode code="401">
+            <![CDATA[User not authorized to perform this operation]]>
+          </statusCode>
+        </operation>
+      </resource>
+      <resource name="/node/{nodeType}/{nodeId}/tables/{tableName}/rows/{rowUuid}" subcontext="/oc/nb/v2">
+        <groups>
+          <group>OVSDBNorthbound</group>
+        </groups>
+        <operation name="GET">
+          <documentation>
+            <![CDATA[Read a Row]]>
+          </documentation>
+          <contentType type="*/*" consumable="false" produceable="true"/>
+          <contentType type="application/xml" consumable="false" produceable="true"/>
+          <contentType type="application/json" consumable="true" produceable="false"/>
+          <parameter name="nodeType" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[(no documentation provided)]]>
+          </parameter>
+          <parameter name="nodeId" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[(no documentation provided)]]>
+          </parameter>
+          <parameter name="tableName" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[name of the ovsdb table]]>
+          </parameter>
+          <parameter name="rowUuid" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[UUID of the row being read]]>
+          </parameter>
+          <outValue>
+            
+            
+            <documentation><![CDATA[Row corresponding to the UUID.
+
+<pre>
+Example:
+
+Request URL:
+https://localhost/controller/nb/v2/ovsdb/tables/bridge/rows/6f4c602c-026f-4390-beea-d50d6d448100
+</pre>]]></documentation>
+          </outValue>
+          <statusCode code="200">
+            <![CDATA[Row Updated successfully]]>
+          </statusCode>
+          <statusCode code="400">
+            <![CDATA[Invalid data passed]]>
+          </statusCode>
+          <statusCode code="401">
+            <![CDATA[User not authorized to perform this operation]]>
+          </statusCode>
+        </operation>
+        <operation name="PUT">
+          <documentation>
+            <![CDATA[Update a Row]]>
+          </documentation>
+          <contentType type="*/*" consumable="false" produceable="true"/>
+          <contentType type="application/xml" consumable="false" produceable="true"/>
+          <contentType type="application/json" consumable="true" produceable="false"/>
+          <parameter name="nodeType" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[(no documentation provided)]]>
+          </parameter>
+          <parameter name="nodeId" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[(no documentation provided)]]>
+          </parameter>
+          <parameter name="tableName" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[name of the ovsdb table]]>
+          </parameter>
+          <parameter name="rowUuid" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[UUID of the row being updated]]>
+          </parameter>
+          <inValue>
+            
+            
+            <documentation><![CDATA[the OVSDBRow Row that is being inserted]]></documentation>
+          </inValue>
+          <outValue>
+            
+            
+            <documentation><![CDATA[Response as dictated by the HTTP Response Status code
+
+<pre>
+Example:
+
+Request URL:
+PUT https://localhost/controller/nb/v2/ovsdb/tables/bridge/rows/6f4c602c-026f-4390-beea-d50d6d448100
+BODY
+{
+"row":{
+"Bridge":{
+"datapath_type":"OPENFLOWv1.3",
+"stp_enable":true
+}
+}
+}
+</pre>]]></documentation>
+          </outValue>
+          <statusCode code="200">
+            <![CDATA[Row Updated successfully]]>
+          </statusCode>
+          <statusCode code="400">
+            <![CDATA[Invalid data passed]]>
+          </statusCode>
+          <statusCode code="401">
+            <![CDATA[User not authorized to perform this operation]]>
+          </statusCode>
+        </operation>
+      </resource>
+      <resource name="/node/{nodeType}/{nodeId}/tables/{tableName}/rows/{uuid}" subcontext="/oc/nb/v2">
+        <groups>
+          <group>OVSDBNorthbound</group>
+        </groups>
+        <operation name="DELETE">
+          <documentation>
+            <![CDATA[Delete a row]]>
+          </documentation>
+          <contentType type="*/*" consumable="true" produceable="true"/>
+          <contentType type="application/xml" consumable="true" produceable="true"/>
+          <parameter name="nodeType" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[(no documentation provided)]]>
+          </parameter>
+          <parameter name="nodeId" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[(no documentation provided)]]>
+          </parameter>
+          <parameter name="tableName" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[name of the ovsdb table]]>
+          </parameter>
+          <parameter name="uuid" type="path" xmlTypeName="string" xmlTypeNamespace="http://www.w3.org/2001/XMLSchema">
+            <![CDATA[UUID of the Row to be removed]]>
+          </parameter>
+          <outValue>
+            
+            
+            <documentation><![CDATA[Response as dictated by the HTTP Response Status code
+
+<pre>
+Example:
+
+Request URL:
+https://localhost/controller/nb/v2/ovsdb/tables/bridge/rows/41ab15a9-0dab-4675-a579-63019d4bcbec
+
+</pre>]]></documentation>
+          </outValue>
+          <statusCode code="204">
+            <![CDATA[User Deleted Successfully]]>
+          </statusCode>
+          <statusCode code="401">
+            <![CDATA[User not authorized to perform this operation]]>
+          </statusCode>
+          <statusCode code="404">
+            <![CDATA[The userName passed was not found]]>
+          </statusCode>
+          <statusCode code="500">
+            <![CDATA[Internal Server Error : Removal of user failed]]>
+          </statusCode>
+          <statusCode code="503">
+            <![CDATA[Service unavailable]]>
+          </statusCode>
+        </operation>
+      </resource>
+    </resources>
+    <groups>
+      <group>
+        <name>OVSDBNorthbound</name>
+        <documentation><![CDATA[This class provides REST APIs to Create, Read, Update and Delete OVSDB Row in any of the ovsdb table
+database one at a time.]]></documentation>
+      </group>
+    </groups>
+  </rest>
+  <packages>
+    <package id="org.opendaylight.oc.northbound">
+    </package>
+  </packages>
+</api-docs>
