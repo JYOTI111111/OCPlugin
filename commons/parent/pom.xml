@@ -13,15 +13,9 @@
   <artifactId>commons.oc</artifactId>
   <version>1.4.2-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <!--<url>https://wiki.opendaylight.org/view/OVSDB_Integration:Main</url>
-  <scm>
-    <connection>scm:git:ssh://git.opendaylight.org:29418/ovsdb.git</connection>
-    <developerConnection>scm:git:ssh://git.opendaylight.org:29418/ovsdb.git</developerConnection>
-    <url>https://wiki.opendaylight.org/view/OVSDB_Integration:Main</url>
-    <tag>HEAD</tag>
-  </scm>-->
+
   <properties>
-  <!--   <nexusproxy>http://nexus.opendaylight.org/content</nexusproxy> -->
+    <sonar.host.url> http://localhost:9000/ </sonar.host.url>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version.source>1.7</java.version.source>
     <java.version.target>1.7</java.version.target>
@@ -43,14 +37,7 @@
       </plugins>
     </pluginManagement>
   </build>
-
   <repositories>
- 	
-      <!-- <repository>
-         <id>repo</id>
-         <url>https://github.com/Juniper/contrail-maven/raw/master/releases</url>
-      </repository> -->
-      
     <!-- Opendaylight public group -->
     <repository>
       <id>opendaylight-public</id>

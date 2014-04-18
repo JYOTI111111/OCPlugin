@@ -1,6 +1,9 @@
 package org.opendaylight.oc.neutron;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -21,11 +24,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.opendaylight.controller.networkconfig.neutron.NeutronNetwork;
 import org.opendaylight.controller.networkconfig.neutron.NeutronSubnet;
-import org.opendaylight.yang.gen.v1.urn.ietf.params.xml.ns.yang.ietf.inet.types.rev100924.IpPrefix;
 
+/**
+ * Test Class for Subnet.
+ */
 public class SubnetHandlerTest {
 
-    SubnetHandler SubnetHandlerObject;
+    SubnetHandler SubnetHandler;
     NeutronSubnet mockedNeutronSubnet = mock(NeutronSubnet.class);
     NeutronNetwork mockedNeutronNetwork = mock(NeutronNetwork.class);
     VirtualNetwork mockedVirtualNetwork = mock(VirtualNetwork.class);
@@ -37,7 +42,7 @@ public class SubnetHandlerTest {
 
     @Before
     public void beforeTest(){
-        SubnetHandlerObject = new SubnetHandler();
+        SubnetHandler = new SubnetHandler();
         assertNotNull(mockedApiConnector);
         assertNotNull(mockedNeutronNetwork);
         assertNotNull(mockedVirtualNetwork);
@@ -45,7 +50,7 @@ public class SubnetHandlerTest {
 
     @After
     public void afterTest(){
-        SubnetHandlerObject = null;
+        SubnetHandler = null;
         Activator.apiConnector = null;
     }
 
@@ -64,7 +69,7 @@ public class SubnetHandlerTest {
     @Test
     public void testCanCreateSubnetNull() {
         Activator.apiConnector = mockedApiConnector;
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, SubnetHandlerObject.canCreateSubnet(null));
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, SubnetHandler.canCreateSubnet(null));
     }
 
 
@@ -72,7 +77,7 @@ public class SubnetHandlerTest {
     @Test
     public void testcanCreateSubnetApiConnectorNull() {
         NeutronSubnet neutronSubnet = defaultSubnetObject();
-        assertEquals(HttpURLConnection.HTTP_UNAVAILABLE, SubnetHandlerObject.canCreateSubnet(neutronSubnet));
+        assertEquals(HttpURLConnection.HTTP_UNAVAILABLE, SubnetHandler.canCreateSubnet(neutronSubnet));
     }
 
 
@@ -82,18 +87,19 @@ public class SubnetHandlerTest {
         Activator.apiConnector = mockedApiConnector;
         NeutronSubnet neutronSubnet = defaultSubnetObject();
         when(mockedApiConnector.findById(VirtualNetwork.class,neutronSubnet.getNetworkUUID())).thenReturn(null);
-        assertEquals(HttpURLConnection.HTTP_FORBIDDEN, SubnetHandlerObject.canCreateSubnet(neutronSubnet));
+        assertEquals(HttpURLConnection.HTTP_FORBIDDEN, SubnetHandler.canCreateSubnet(neutronSubnet));
     }
 
 
-    /* Test method to check if subnet can be created  */
+    /* Test method to check if subnet can be created with IpamRefs null */
     @Test
     public void testCanCreateSubnet() throws IOException {
         Activator.apiConnector = mockedApiConnector;
         NeutronSubnet neutronSubnet = defaultSubnetObject();
         when(mockedApiConnector.findById(VirtualNetwork.class,neutronSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
+        when(mockedVirtualNetwork.getNetworkIpam()).thenReturn(null);
         when(mockedApiConnector.update(mockedVirtualNetwork)).thenReturn(true);
-        assertEquals(HttpURLConnection.HTTP_OK, SubnetHandlerObject.canCreateSubnet(neutronSubnet));
+        assertEquals(HttpURLConnection.HTTP_OK, SubnetHandler.canCreateSubnet(neutronSubnet));
     }
 
 
@@ -103,51 +109,111 @@ public class SubnetHandlerTest {
         Activator.apiConnector = mockedApiConnector;
         NeutronSubnet neutronSubnet = defaultSubnetObject();
         when(mockedApiConnector.findById(VirtualNetwork.class,neutronSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
+        when(mockedVirtualNetwork.getNetworkIpam()).thenReturn(null);
         when(mockedApiConnector.update(mockedVirtualNetwork)).thenReturn(false);
-        assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, SubnetHandlerObject.canCreateSubnet(neutronSubnet));
+        assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, SubnetHandler.canCreateSubnet(neutronSubnet));
     }
+
+
+    /* Test method to check if subnet already exists  */
+
+    @Test
+    public void testCanCreateSubnetExists() throws IOException {
+        Activator.apiConnector = mockedApiConnector;
+        NeutronSubnet neutronSubnet = defaultSubnetObject();
+        when(mockedApiConnector.findById(VirtualNetwork.class,neutronSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
+        VnSubnetsType vnSubnetType = new VnSubnetsType();
+        ObjectReference <VnSubnetsType> ref=new ObjectReference<>();
+        List<ObjectReference <VnSubnetsType>> ipamRefs = new ArrayList<ObjectReference <VnSubnetsType>>();
+        List<VnSubnetsType.IpamSubnetType> subnets=new ArrayList<VnSubnetsType.IpamSubnetType>();
+        VnSubnetsType.IpamSubnetType subnetType = new VnSubnetsType.IpamSubnetType();
+        SubnetType type = new SubnetType();
+        List<String> temp=new ArrayList<String>();
+        for(int i=0;i<1;i++) {
+            subnetType.setSubnet(type);
+            subnetType.getSubnet().setIpPrefix("10.0.0.1");
+            subnetType.getSubnet().setIpPrefixLen(24);
+            subnets.add(subnetType);
+            vnSubnetType.addIpamSubnets(subnetType);
+            ref.setReference(temp,vnSubnetType,"","");
+            ipamRefs.add(ref);
+            }
+        when(mockedVirtualNetwork.getNetworkIpam()).thenReturn(ipamRefs);
+        assertTrue(subnetType.getSubnet().getIpPrefix().matches("10.0.0.1"));
+        assertEquals(HttpURLConnection.HTTP_FORBIDDEN, SubnetHandler.canCreateSubnet(neutronSubnet));
+        }
+
+
+    /* Test method to check if subnet already exists, with null CIDR */
+    @Test
+    public void testCanCreateSubnetExistsWithCIDRNull() throws IOException {
+        Activator.apiConnector = mockedApiConnector;
+        NeutronSubnet neutronSubnet = new NeutronSubnet();
+        neutronSubnet.setNetworkUUID("6b9570f2-17b1-4fc399ec-1b7f7778a29b");
+        neutronSubnet.setSubnetUUID("7b9570f2-17b1-4fc399ec-1b7f7778a29b");
+        when(mockedApiConnector.findById(VirtualNetwork.class,neutronSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
+        VnSubnetsType vnSubnetType = new VnSubnetsType();
+        ObjectReference <VnSubnetsType> ref=new ObjectReference<>();
+        List<ObjectReference <VnSubnetsType>> ipamRefs = new ArrayList<ObjectReference <VnSubnetsType>>();
+        List<VnSubnetsType.IpamSubnetType> subnets=new ArrayList<VnSubnetsType.IpamSubnetType>();
+        VnSubnetsType.IpamSubnetType subnetType = new VnSubnetsType.IpamSubnetType();
+        SubnetType type = new SubnetType();
+        List<String> temp=new ArrayList<String>();
+        for(int i=0;i<1;i++) {
+            subnetType.setSubnet(type);
+            subnetType.getSubnet().setIpPrefix("10.0.0.1");
+            subnetType.getSubnet().setIpPrefixLen(24);
+            subnets.add(subnetType);
+            vnSubnetType.addIpamSubnets(subnetType);
+            ref.setReference(temp,vnSubnetType,"","");
+            ipamRefs.add(ref);
+            }
+        when(mockedVirtualNetwork.getNetworkIpam()).thenReturn(ipamRefs);
+        assertTrue(subnetType.getSubnet().getIpPrefix().matches("10.0.0.1"));
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, SubnetHandler.canCreateSubnet(neutronSubnet));
+        }
 
 
     /* Test method to check ipPrefix  */
     @Test
     public void testGetIpPrefix() {
-        SubnetHandlerObject.apiConnector = mockedApiConnector;
+        SubnetHandler.apiConnector = mockedApiConnector;
         NeutronSubnet neutronSubnet = defaultSubnetObject();
         String cidr = "10.0.0.1/24";
         String[] ipPrefix = cidr.split("/");
-        assertArrayEquals(ipPrefix, SubnetHandlerObject.getIpPrefix(neutronSubnet));
+        assertArrayEquals(ipPrefix, SubnetHandler.getIpPrefix(neutronSubnet));
     }
 
 
     /* Test method to check if ipPrefix is null  */
     @Test(expected=NullPointerException.class)
     public void testGetIpPrefixNull() {
-        SubnetHandlerObject.apiConnector = mockedApiConnector;
+        SubnetHandler.apiConnector = mockedApiConnector;
         NeutronSubnet neutronSubnet = new NeutronSubnet();
         neutronSubnet.setNetworkUUID("6b9570f2-17b1-4fc399ec-1b7f7778a29b");
         neutronSubnet.setSubnetUUID("7b9570f2-17b1-4fc399ec-1b7f7778a29b");
-        SubnetHandlerObject.getIpPrefix(neutronSubnet);
+        SubnetHandler.getIpPrefix(neutronSubnet);
     }
 
 
     /* Test method to check if ipPrefix is valid  */
     @Test(expected=IllegalArgumentException.class)
     public void testGetIpPrefixInvalid() {
-        SubnetHandlerObject.apiConnector = mockedApiConnector;
+        SubnetHandler.apiConnector = mockedApiConnector;
         NeutronSubnet neutronSubnet = new NeutronSubnet();
         neutronSubnet.setNetworkUUID("6b9570f2-17b1-4fc399ec-1b7f7778a29b");
         neutronSubnet.setSubnetUUID("7b9570f2-17b1-4fc399ec-1b7f7778a29b");
         neutronSubnet.setCidr("10.0.0.1");
-        SubnetHandlerObject.getIpPrefix(neutronSubnet);
+        SubnetHandler.getIpPrefix(neutronSubnet);
     }
 
 
     /* Test method to check if network is available  */
     @Test
     public void testGetNetwork() throws IOException {
-        SubnetHandlerObject.apiConnector = mockedApiConnector;
+        SubnetHandler.apiConnector = mockedApiConnector;
         NeutronSubnet neutronSubnet = defaultSubnetObject();
         when(mockedApiConnector.findById(VirtualNetwork.class,neutronSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
-        assertNotNull(SubnetHandlerObject.getNetwork(neutronSubnet));
+        assertNotNull(SubnetHandler.getNetwork(neutronSubnet));
     }
 }

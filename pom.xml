@@ -5,7 +5,6 @@
     <maven>3.0</maven>
   </prerequisites>
 
-
   <parent>
     <groupId>org.opendaylight.oc</groupId>
     <artifactId>commons.oc</artifactId>
@@ -16,18 +15,12 @@
   <artifactId>oc.project</artifactId>
   <version>0.4.2-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <!--<scm>
-    <connection>scm:git:ssh://git.opendaylight.org:29418/ovsdb.git</connection>
-    <developerConnection>scm:git:ssh://git.opendaylight.org:29418/ovsdb.git</developerConnection>
-    <url>https://wiki.opendaylight.org/view/OVSDB_Integration:Main</url>
-    <tag>HEAD</tag>
-  </scm>-->
+  <properties>
+  <sonar.host.url> http://localhost:9000/ </sonar.host.url>
+  </properties>
   <modules>
-    <module>oc</module>
-   <!--  <module>northbound</module> -->
     <module>neutron</module>
     <module>commons/parent</module>
-   <!-- <module>distribution/opendaylight</module>-->
   </modules>
 
 </project>

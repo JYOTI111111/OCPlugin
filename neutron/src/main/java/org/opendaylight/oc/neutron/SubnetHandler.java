@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Handle requests for Neutron Subnet.
  */
-public class SubnetHandler extends BaseHandler implements INeutronSubnetAware {
+public class SubnetHandler implements INeutronSubnetAware {
   /**
   * Logger instance.
   */
@@ -39,14 +39,14 @@ public class SubnetHandler extends BaseHandler implements INeutronSubnetAware {
    VirtualNetwork virtualnetwork = new VirtualNetwork();
    apiConnector = Activator.apiConnector;
 
+   if (apiConnector == null) {
+       LOGGER.error("Connection lost with Contrail API server...");
+       return HttpURLConnection.HTTP_UNAVAILABLE;
+       }
+
   if(subnet==null){
       LOGGER.error("Neutron Subnet can't be null..");
       return HttpURLConnection.HTTP_BAD_REQUEST;
-  }
-  
-  if(apiConnector==null){
-	  LOGGER.error("Api Connector can't be null..");
-      return HttpURLConnection.HTTP_UNAVAILABLE;
   }
 
   try {
@@ -60,12 +60,42 @@ public class SubnetHandler extends BaseHandler implements INeutronSubnetAware {
       return HttpURLConnection.HTTP_FORBIDDEN;
   }
   else {
+      try {
+          List<ObjectReference <VnSubnetsType>> ipamRefs = virtualnetwork.getNetworkIpam();
+          if (ipamRefs != null){
+              for (ObjectReference <VnSubnetsType> ref : ipamRefs) {
+                  VnSubnetsType vnSubnetsType = ref.getAttr();
+                  if(vnSubnetsType != null){
+                      List<VnSubnetsType.IpamSubnetType> subnets = vnSubnetsType.getIpamSubnets();
+                      if(subnets != null){
+                          if(subnet.getCidr()==null){
+                              LOGGER.error("CIDR can't be null");
+                              return HttpURLConnection.HTTP_BAD_REQUEST;
+                              }
+                          for(VnSubnetsType.IpamSubnetType subnetValue: subnets) {
+                              String[] ipPrefix=getIpPrefix(subnet);
+                              Boolean doesSubnetExist = subnetValue.getSubnet().getIpPrefix().matches(ipPrefix[0]);
+                              if(doesSubnetExist){
+                                  LOGGER.error("The subnet already exists..");
+                                  return HttpURLConnection.HTTP_FORBIDDEN;
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          } catch (Exception e) {
+              LOGGER.error("Exception :     "+e);
+              return HttpURLConnection.HTTP_INTERNAL_ERROR;
+              }
       try{
-          int result = createSubnet(subnet,virtualnetwork);
-          return result;
+          return createSubnet(subnet,virtualnetwork);
+          }
+      catch(IOException ie){
+          LOGGER.error("IOException:     "+ie);
+          return HttpURLConnection.HTTP_INTERNAL_ERROR;
           }
       catch(Exception e){
-          e.printStackTrace();
           LOGGER.error("Exception:     "+e);
           return HttpURLConnection.HTTP_INTERNAL_ERROR;
           }
@@ -91,7 +121,7 @@ public class SubnetHandler extends BaseHandler implements INeutronSubnetAware {
                       List<VnSubnetsType.IpamSubnetType> subnets = vnSubnetsType.getIpamSubnets();
                       for(VnSubnetsType.IpamSubnetType subnetValue: subnets) {
                           String[] ipPrefix=getIpPrefix(subnet);
-                          Boolean doesSubnetExist = subnetValue.getSubnet().getIpPrefix().matches(ipPrefix[0]);
+                          boolean doesSubnetExist = subnetValue.getSubnet().getIpPrefix().matches(ipPrefix[0]);
                           if(doesSubnetExist){
                               LOGGER.info("Subnet creation verified...");
                               }
@@ -103,6 +133,7 @@ public class SubnetHandler extends BaseHandler implements INeutronSubnetAware {
               LOGGER.error("Exception :     "+e);
               }
       }
+
 
   /**
    * Invoked to create the subnet
@@ -116,69 +147,20 @@ public class SubnetHandler extends BaseHandler implements INeutronSubnetAware {
    */
   private int createSubnet(NeutronSubnet subnet, VirtualNetwork virtualNetwork) throws IOException{
   //add subnet properties to the virtual-network object
-      virtualNetwork = mapSubnetProperties(subnet, virtualNetwork);
+      VirtualNetwork virtualnetwork = mapSubnetProperties(subnet, virtualNetwork);
 {
-    boolean subnetCreate= apiConnector.update(virtualNetwork);
+    boolean subnetCreate= apiConnector.update(virtualnetwork);
     if(!subnetCreate)
     {
      LOGGER.warn("Subnet creation failed..");
      return HttpURLConnection.HTTP_INTERNAL_ERROR;
      }
     else{
-     LOGGER.info("Subnet " + subnet.getCidr() + "sucessfully added to the network having UUID : " + virtualNetwork.getUuid() );
+     LOGGER.info("Subnet " + subnet.getCidr() + "sucessfully added to the network having UUID : " + virtualnetwork.getUuid() );
      return HttpURLConnection.HTTP_OK;
     }
 }
 }
-
-/**
- * Invoked when a subnet update is requested to indicate if the specified
- * subnet can be changed using the specified delta.
- * @param delta
- *            Updates to the subnet object using patch semantics.
- * @param original
- *            An instance of the Neutron Subnet object to be updated.
- * @return A HTTP status code to the update request.
- */
-   @Override
-   public int canUpdateSubnet(NeutronSubnet delta, NeutronSubnet original) {
-   return HttpURLConnection.HTTP_CREATED;
-   }
-
-
-/**
- * Invoked to take action after a subnet has been updated.
- * @param subnet
- *            An instance of modified Neutron Subnet object.
- */
-  @Override
-  public void neutronSubnetUpdated(NeutronSubnet subnet) {
-  // TODO Auto-generated method stub
-  }
-
-  /**
-   * Invoked when a subnet deletion is requested to indicate if the specified
-   * subnet can be deleted.
-   *  @param subnet
-   *       An instance of the Neutron Subnet object to be deleted.
-   * @return A HTTP status code to the deletion request.
-   */
-   @Override
-   public int canDeleteSubnet(NeutronSubnet subnet) {
-   // TODO Auto-generated method stub
-   return HttpURLConnection.HTTP_CREATED;
-   }
-
-
-  /**
-   * Invoked to take action after a subnet has been deleted.
-   * @param subnet
-   *            An instance of deleted Neutron Subnet object.
-   */
-   @Override
-   public void neutronSubnetDeleted(NeutronSubnet subnet) {
-   // TODO Auto-generated method stub
-   }
 
 
   /**
@@ -191,7 +173,7 @@ public class SubnetHandler extends BaseHandler implements INeutronSubnetAware {
    *
    * @return {@link VirtualNetwork}
    */
-   VirtualNetwork mapSubnetProperties(NeutronSubnet subnet, VirtualNetwork vn) {
+   private VirtualNetwork mapSubnetProperties(NeutronSubnet subnet, VirtualNetwork vn) {
    String[] ipPrefix=null;
    NetworkIpam ipam = null;
    VnSubnetsType vnSubnetsType=new VnSubnetsType();
@@ -246,6 +228,57 @@ public class SubnetHandler extends BaseHandler implements INeutronSubnetAware {
      }
    return ipPrefix;
    }
+
+
+/**
+ * Invoked when a subnet update is requested to indicate if the specified
+ * subnet can be changed using the specified delta.
+ * @param delta
+ *            Updates to the subnet object using patch semantics.
+ * @param original
+ *            An instance of the Neutron Subnet object to be updated.
+ * @return A HTTP status code to the update request.
+ */
+   @Override
+   public int canUpdateSubnet(NeutronSubnet delta, NeutronSubnet original) {
+   return HttpURLConnection.HTTP_CREATED;
+   }
+
+
+/**
+ * Invoked to take action after a subnet has been updated.
+ * @param subnet
+ *            An instance of modified Neutron Subnet object.
+ */
+  @Override
+  public void neutronSubnetUpdated(NeutronSubnet subnet) {
+  // TODO Auto-generated method stub
+  }
+
+  /**
+   * Invoked when a subnet deletion is requested to indicate if the specified
+   * subnet can be deleted.
+   *  @param subnet
+   *       An instance of the Neutron Subnet object to be deleted.
+   * @return A HTTP status code to the deletion request.
+   */
+   @Override
+   public int canDeleteSubnet(NeutronSubnet subnet) {
+   // TODO Auto-generated method stub
+   return HttpURLConnection.HTTP_CREATED;
+   }
+
+
+  /**
+   * Invoked to take action after a subnet has been deleted.
+   * @param subnet
+   *            An instance of deleted Neutron Subnet object.
+   */
+   @Override
+   public void neutronSubnetDeleted(NeutronSubnet subnet) {
+   // TODO Auto-generated method stub
+   }
+
 
 
   /**

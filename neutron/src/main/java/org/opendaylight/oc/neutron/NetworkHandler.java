@@ -6,10 +6,8 @@ package org.opendaylight.oc.neutron;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-//import java.util.regex.Pattern;
 import net.juniper.contrail.api.ApiConnector;
 import net.juniper.contrail.api.types.VirtualNetwork;
-//import net.juniper.contrail.api.types.VirtualNetworkType;
 import org.opendaylight.controller.networkconfig.neutron.INeutronNetworkAware;
 import org.opendaylight.controller.networkconfig.neutron.NeutronNetwork;
 import org.slf4j.Logger;
@@ -18,7 +16,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Handle requests for Neutron Network.
  */
-public class NetworkHandler extends BaseHandler implements INeutronNetworkAware {
+public class NetworkHandler implements INeutronNetworkAware {
 
 /**
  * Logger instance.
@@ -37,47 +35,45 @@ public class NetworkHandler extends BaseHandler implements INeutronNetworkAware 
  */
      @Override
      public int canCreateNetwork(NeutronNetwork network) {
-    	 apiConnector = Activator.apiConnector;
-    	 
          if (network == null){
               LOGGER.error("Network object can't be null..");
               return HttpURLConnection.HTTP_BAD_REQUEST;
          }
 
          if (network.getShared() == null) {
-              LOGGER.debug("Network shared attribute not available in request..");
+              LOGGER.info("Network shared attribute not available in request..");
               return HttpURLConnection.HTTP_BAD_REQUEST;
          }
 
          if (network.isShared()) {
-              LOGGER.debug("Network shared attribute not supported ");
+              LOGGER.info("Network shared attribute not supported ");
               return HttpURLConnection.HTTP_NOT_ACCEPTABLE;
          }
 
          LOGGER.debug("Network object " + network);
+
+         apiConnector = Activator.apiConnector;
 
          if (apiConnector == null) {
               LOGGER.error("Connection lost with Contrail API server...");
               return HttpURLConnection.HTTP_UNAVAILABLE;
          }
 
-         String uuid = network.getNetworkUUID();
-         String networkName=network.getNetworkName();
-
-         if(uuid == null || networkName == null || uuid =="") {
-              LOGGER.error("Network UUID and Network Name can't be null/empty...");
-              return HttpURLConnection.HTTP_BAD_REQUEST;
+         if(network.getNetworkUUID() == null || network.getNetworkName() == null || network.getNetworkUUID().equals("")) {
+             LOGGER.error("Network UUID and Network Name can't be null/empty...");
+             return HttpURLConnection.HTTP_BAD_REQUEST;
          }
-
-             try{
-              int result = createNetwork(network);
-              return result;
-             }
-             catch(Exception e){
-                 e.printStackTrace();
-                 LOGGER.error("Exception :   "+e);
-                 return HttpURLConnection.HTTP_INTERNAL_ERROR;
-             }
+         try{
+             return createNetwork(network);
+         }
+         catch(IOException ie){
+             LOGGER.error("IOException :   "+ie);
+             return HttpURLConnection.HTTP_INTERNAL_ERROR;
+         }
+         catch(Exception e){
+             LOGGER.error("Exception :   "+e);
+             return HttpURLConnection.HTTP_INTERNAL_ERROR;
+         }
 
      }
 
@@ -90,8 +86,9 @@ public class NetworkHandler extends BaseHandler implements INeutronNetworkAware 
       @Override
       public void neutronNetworkCreated(NeutronNetwork network) {
           VirtualNetwork virtualNetwork = null;
+          NeutronNetwork neutronNetwork=validateUuid(network);
           try{
-          virtualNetwork = (VirtualNetwork) apiConnector.findById(VirtualNetwork.class, network.getNetworkUUID());
+          virtualNetwork = (VirtualNetwork) apiConnector.findById(VirtualNetwork.class, neutronNetwork.getNetworkUUID());
           if(virtualNetwork != null)
           {
                LOGGER.info("Network creation verified....");
@@ -111,19 +108,26 @@ public class NetworkHandler extends BaseHandler implements INeutronNetworkAware 
        * @return A HTTP status code to the creation request.
        */
       private int createNetwork(NeutronNetwork network) throws IOException{
-           VirtualNetwork virtualNetwork = new VirtualNetwork();
-//           apiConnector = Activator.apiConnector;
-           VirtualNetwork virtualnetwork = mapNetworkProperties(network, virtualNetwork);
-               boolean networkCreated = apiConnector.create(virtualnetwork);
+           VirtualNetwork virtualNetwork = null;
+           NeutronNetwork neutronNetwork=validateUuid(network);
+           virtualNetwork = (VirtualNetwork) apiConnector.findById(VirtualNetwork.class, neutronNetwork.getNetworkUUID());
+           if(virtualNetwork != null)
+           {
+               LOGGER.warn("Network already exists..");
+               return HttpURLConnection.HTTP_FORBIDDEN;
+           }
+           virtualNetwork = new VirtualNetwork();
+           // map neutronNetwork to virtualNetwork
+           virtualNetwork = mapNetworkProperties(neutronNetwork, virtualNetwork);
+               boolean networkCreated = apiConnector.create(virtualNetwork);
+               LOGGER.debug("networkCreated:   "+networkCreated);
                if (!networkCreated) {
                    LOGGER.warn("Network creation failed..");
                    return HttpURLConnection.HTTP_INTERNAL_ERROR;
                }
-               else{
-                   LOGGER.info("Network : " + virtualnetwork.getName() +
-                           "  having UUID : " + virtualnetwork.getUuid() +
+               LOGGER.info("Network : " + virtualNetwork.getName() +
+                           "  having UUID : " + virtualNetwork.getUuid() +
                            "  sucessfully created...");
-               }
                return HttpURLConnection.HTTP_OK;
       }
 
@@ -138,13 +142,41 @@ public class NetworkHandler extends BaseHandler implements INeutronNetworkAware 
  *
  * @return {@link VirtualNetwork}
  */
-    VirtualNetwork mapNetworkProperties(NeutronNetwork neutronNetwork,VirtualNetwork virtualNetwork) {
-          String networkUUID = neutronNetwork.getNetworkUUID();
-          String netWorkname = neutronNetwork.getNetworkName();
+      private VirtualNetwork mapNetworkProperties(NeutronNetwork neutronNetwork,VirtualNetwork virtualNetwork) {
+           String networkUUID = neutronNetwork.getNetworkUUID();
+           String netWorkname = neutronNetwork.getNetworkName();
            virtualNetwork.setName(netWorkname);
            virtualNetwork.setUuid(networkUUID);
            return virtualNetwork;
       }
+
+
+ /**
+ * Invoked to validate UUID.
+ *
+ * @param neutronNetwork
+ *            An instance of new Neutron Network object.
+ *
+ * @return {@link NeutronNetwork}
+ */
+      private NeutronNetwork validateUuid(NeutronNetwork neutronNetwork){
+          String networkUUID = neutronNetwork.getNetworkUUID();
+
+          if(networkUUID.length()>32 && networkUUID.indexOf('-')>0){
+             networkUUID=networkUUID.replace("-","");
+          }
+          if(networkUUID.length()==32){
+               networkUUID=networkUUID.substring(0,8)+"-"+
+                       networkUUID.substring(8, 12)+"-"+
+                       networkUUID.substring(12,16)+"-"+
+                       networkUUID.substring(16, 20)+"-"+
+                       networkUUID.substring(20,32);
+          }
+          networkUUID=networkUUID.toLowerCase();
+          neutronNetwork.setNetworkUUID(networkUUID);
+          return neutronNetwork;
+      }
+
 
 /**
  * Invoked when a network update is requested to indicate if the specified

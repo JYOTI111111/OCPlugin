@@ -26,6 +26,7 @@ public class Activator extends ComponentActivatorAbstractBase {
      */
     @Override
     public void init() {
+        LOGGER.info("OC Plugin service Registered");
         apiConnector =getApiConnection();
     }
 
