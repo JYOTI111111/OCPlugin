@@ -1,21 +1,29 @@
 /*
  * Copyright (C) 2014 Juniper Networks, Inc.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ *
  */
 
-package org.opendaylight.oc.neutron;
+package org.opendaylight.opencontrail.neutron;
 
 import net.juniper.contrail.api.ApiConnector;
 import net.juniper.contrail.api.ApiConnectorFactory;
+
 import org.apache.felix.dm.Component;
 import org.opendaylight.controller.networkconfig.neutron.INeutronNetworkAware;
+import org.opendaylight.controller.networkconfig.neutron.INeutronPortAware;
 import org.opendaylight.controller.networkconfig.neutron.INeutronSubnetAware;
 import org.opendaylight.controller.sal.binding.api.BindingAwareBroker;
 import org.opendaylight.controller.sal.core.ComponentActivatorAbstractBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /**
- * OSGi bundle activator for the OC Neutron Interface.
+ * OSGi bundle activator for the opencontrail Neutron Interface.
  */
+
 public class Activator extends ComponentActivatorAbstractBase {
     static ApiConnector apiConnector=null;
     static final Logger LOGGER = LoggerFactory.getLogger(Activator.class);
@@ -26,16 +34,18 @@ public class Activator extends ComponentActivatorAbstractBase {
      */
     @Override
     public void init() {
-        LOGGER.info("OC Plugin service Registered");
+        LOGGER.info("opencontrail Plugin service Registered");
         apiConnector =getApiConnection();
     }
 
     /**
      * Function called to get APIConnector object.
+     * porperties must be defined in opendaylight configuration folder inside config.ini
+     * at opendaylight/distribution/opendaylight/src/main/resources/configuration/config.ini
      */
     public ApiConnector getApiConnection(){
-        String ipAddress=System.getProperty("contrail.apiserver.ipaddress");
-        String port=System.getProperty("contrail.apiserver.port");
+        String ipAddress=System.getProperty("opencontrail.apiserver.ipaddress");
+        String port=System.getProperty("opencontrail.apiserver.port");
         int portNumber=Integer.parseInt(port);
         apiConnector = ApiConnectorFactory.build(ipAddress, portNumber);
         return apiConnector;
@@ -60,7 +70,7 @@ public class Activator extends ComponentActivatorAbstractBase {
      */
     @Override
     public Object[] getImplementations() {
-        Object[] res = {NetworkHandler.class,SubnetHandler.class};
+        Object[] res = {NetworkHandler.class,SubnetHandler.class,PortHandler.class};
         return res;
     }
 
@@ -87,6 +97,10 @@ public class Activator extends ComponentActivatorAbstractBase {
       if (imp.equals(SubnetHandler.class)) {
             c.setInterface(INeutronSubnetAware.class.getName(), null);
         }
+
+      if (imp.equals(PortHandler.class)) {
+          c.setInterface(INeutronPortAware.class.getName(), null);
+      }
 
         // Create service dependencies.
         c.add(createServiceDependency()

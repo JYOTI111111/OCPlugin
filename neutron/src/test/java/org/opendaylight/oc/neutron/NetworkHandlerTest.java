@@ -1,4 +1,14 @@
-package org.opendaylight.oc.neutron;
+/*
+ * Copyright (C) 2014 Juniper Networks, Inc.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ *
+ */
+
+
+package org.opendaylight.opencontrail.neutron;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -7,13 +17,18 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.juniper.contrail.api.ApiConnector;
+import net.juniper.contrail.api.ApiPropertyBase;
+import net.juniper.contrail.api.ObjectReference;
 import net.juniper.contrail.api.types.VirtualNetwork;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.opendaylight.controller.networkconfig.neutron.NeutronNetwork;
 
 /**
@@ -21,15 +36,16 @@ import org.opendaylight.controller.networkconfig.neutron.NeutronNetwork;
  */
 public class NetworkHandlerTest {
 
-    NetworkHandler NetworkHandler;
+    NetworkHandler networkHandler;
+    NetworkHandler mockednetworkHandler= mock(NetworkHandler.class);
     NeutronNetwork mockedNeutronNetwork = mock(NeutronNetwork.class);
-    ApiConnector mockedApiConnector = mock (ApiConnector.class);
-    VirtualNetwork mockedVirtualNetwork =mock (VirtualNetwork.class);
-    NeutronNetwork neutron = new NeutronNetwork();
+    ApiConnector mockedApiConnector = mock(ApiConnector.class);
+    ApiConnector mockedApiConnector1 = Mockito.mock(ApiConnector.class);
+    VirtualNetwork mockedVirtualNetwork =mock(VirtualNetwork.class);
 
     @Before
-    public void beforeTest(){
-        NetworkHandler = new NetworkHandler();
+    public void beforeTest() {
+        networkHandler = new NetworkHandler();
         assertNotNull(mockedApiConnector);
         assertNotNull(mockedNeutronNetwork);
         assertNotNull(mockedVirtualNetwork);
@@ -37,24 +53,47 @@ public class NetworkHandlerTest {
 
     @After
     public void AfterTest(){
-        NetworkHandler = null;
+        networkHandler = null;
         Activator.apiConnector = null;
     }
 
     /* dummy params for Neutron Network  */
 
     public NeutronNetwork defaultNeutronObject(){
-        neutron.setNetworkName("Virtual Network");
-        neutron.setNetworkUUID("6b9570f2-17b1-4fc399ec-1b7f7778a29a");
+        NeutronNetwork neutron = new NeutronNetwork();
+        neutron.setNetworkName("Virtual-Network");
+        neutron.setNetworkUUID("6b9570f2-17b1-4fc3-99ec-1b7f7778a29a");
+        neutron.setProviderNetworkType("gre");
+        neutron.setTenantID("cfedfe89b66e406aad56052873c683e7");
+        neutron.setProviderSegmentationID("2");
+        neutron.setAdminStateUp(true);
+        neutron.setProviderNetworkType("gre");
+        neutron.setProviderSegmentationID("2");
         neutron.setShared(false);
+        neutron.setRouterExternal(false);
         return neutron;
+    }
+
+    /* dummy params for Neutron Network for update */
+
+    public NeutronNetwork defaultNeutronObjectUpdate(){
+        NeutronNetwork delta_neutron = new NeutronNetwork();
+        delta_neutron.setNetworkName("Virtual-Network-2");
+        delta_neutron.setTenantID("cfedfe89b66e406aad56052873c683e7");
+        delta_neutron.setProviderSegmentationID("3");
+        delta_neutron.setAdminStateUp(true);
+        delta_neutron.setProviderNetworkType("gre");
+        delta_neutron.setProviderSegmentationID("4");
+        delta_neutron.setShared(false);
+        delta_neutron.setRouterExternal(false);
+        return delta_neutron;
     }
 
     /* Test method to check if neutron network is null */
     @Test
     public void testCanCreateNetworkNull() {
         Activator.apiConnector = mockedApiConnector;
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, NetworkHandler.canCreateNetwork(null));
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, networkHandler.canCreateNetwork(null));
     }
 
 
@@ -63,35 +102,18 @@ public class NetworkHandlerTest {
     public void testCanCreateNetworkGetSharedNull() {
         Activator.apiConnector = mockedApiConnector;
         when(mockedNeutronNetwork.getShared()).thenReturn(null);
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, NetworkHandler.canCreateNetwork(mockedNeutronNetwork));
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, networkHandler.canCreateNetwork(mockedNeutronNetwork));
     }
-
-
-    /* Test method to check if neutron network is shared or not */
-    @Test
-    public void testCanCreateNetworkIsShared() {
-        Activator.apiConnector = mockedApiConnector;
-        when(mockedNeutronNetwork.isShared()).thenReturn(true);
-        assertEquals(HttpURLConnection.HTTP_NOT_ACCEPTABLE, NetworkHandler.canCreateNetwork(mockedNeutronNetwork));
-    }
-
-
-    /* Test method to check if api connector is null */
-    @Test
-    public void testCanCreateNetworkApiConnectorNull() {
-        NeutronNetwork neutronNetwork = defaultNeutronObject();
-        assertEquals(HttpURLConnection.HTTP_UNAVAILABLE, NetworkHandler.canCreateNetwork(neutronNetwork));
-    }
-
 
     /* Test method to check if neutron network uuid or name is null */
     @Test
     public void testCanCreateNetworkUuidNameNull() {
         Activator.apiConnector = mockedApiConnector;
+        NeutronNetwork neutron = new NeutronNetwork();
         neutron.setNetworkUUID(null);
         neutron.setNetworkName(null);
         neutron.setShared(false);
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, NetworkHandler.canCreateNetwork(neutron));
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, networkHandler.canCreateNetwork(neutron));
     }
 
 
@@ -99,29 +121,108 @@ public class NetworkHandlerTest {
     @Test
     public void testCanCreateNetworkUuidEmpty() {
         Activator.apiConnector = mockedApiConnector;
+        NeutronNetwork neutron = new NeutronNetwork();
         neutron.setNetworkUUID("");
         neutron.setNetworkName(null);
         neutron.setShared(false);
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, NetworkHandler.canCreateNetwork(neutron));
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, networkHandler.canCreateNetwork(neutron));
     }
 
 
-    /* Test method to check neutron network creation is successful
+    /* Test method to check neutron network with virtual network Existence */
     @Test
-    public void testCanCreateNetwork() throws IOException {
+    public void testCanCreateNetworkVirtualNetworkExists() throws IOException  {
         Activator.apiConnector = mockedApiConnector;
         NeutronNetwork neutronNetwork = defaultNeutronObject();
-        when(mockedApiConnector.create(mockedVirtualNetwork)).thenReturn(true);
-        assertEquals(HttpURLConnection.HTTP_OK, NetworkHandler.canCreateNetwork(neutronNetwork));
-    }*/
+        when(mockedApiConnector.findById(VirtualNetwork.class,neutronNetwork.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
+        assertEquals(HttpURLConnection.HTTP_FORBIDDEN, networkHandler.canCreateNetwork(neutronNetwork));
+    }
 
-
-    /* Test method to check neutron network creation fails with Internal Server Error */
+   /*  Test method to check neutron network creation fails with Internal Server Error */
     @Test
     public void testCanCreateNetworkInternalError() throws IOException {
         Activator.apiConnector = mockedApiConnector;
         NeutronNetwork neutronNetwork = defaultNeutronObject();
+        when(mockedApiConnector.findById(VirtualNetwork.class,neutronNetwork.getNetworkUUID())).thenReturn(null);
         when(mockedApiConnector.create(mockedVirtualNetwork)).thenReturn(false);
-        assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, NetworkHandler.canCreateNetwork(neutronNetwork));
+        assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, networkHandler.canCreateNetwork(neutronNetwork));
     }
+
+    /* Test method to check neutron network with virtual network Existence */
+
+    @Test
+    public void testcanDeleteNetwork() throws IOException  {
+        Activator.apiConnector = mockedApiConnector;
+        NeutronNetwork neutronNetwork = defaultNeutronObject();
+        when(mockedApiConnector.findById(VirtualNetwork.class,neutronNetwork.getNetworkUUID())).thenReturn(null);
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, networkHandler.canDeleteNetwork(neutronNetwork));
+    }
+
+    /* Test method to check delete network with when Port exist */
+
+    @Test
+    public void testcanDeleteNetworkPortExists() throws IOException {
+        Activator.apiConnector = mockedApiConnector;
+        NeutronNetwork neutronNetwork = defaultNeutronObject();
+        when(mockedApiConnector.findById(VirtualNetwork.class,neutronNetwork.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
+        List<ObjectReference<ApiPropertyBase>> test =  new ArrayList<ObjectReference<ApiPropertyBase>> ();
+        when(mockedVirtualNetwork.getVirtualMachineInterfaceBackRefs()).thenReturn(test);
+        assertEquals(HttpURLConnection.HTTP_FORBIDDEN, networkHandler.canDeleteNetwork(neutronNetwork));
+    }
+   /*  Test method to check delete network with when Port does not exist */
+
+    @Test
+    public void testcanDeleteNetworkPortNotExists() throws IOException {
+        Activator.apiConnector = mockedApiConnector;
+        NeutronNetwork neutronNetwork = defaultNeutronObject();
+        when(mockedApiConnector.findById(VirtualNetwork.class,neutronNetwork.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
+        when(mockedVirtualNetwork.getVirtualMachineInterfaceBackRefs()).thenReturn(null);
+        assertEquals(HttpURLConnection.HTTP_OK, networkHandler.canDeleteNetwork(neutronNetwork));
+    }
+
+
+   /*  Test method to check if neutron network is null */
+
+    @Test
+    public void testCanUpdateNetworkNull() {
+        Activator.apiConnector = mockedApiConnector;
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, networkHandler.canUpdateNetwork(null, null));
+    }
+
+   /* Test method to check neutron network with virtual network Existence */
+
+    @Test
+    public void testCanUpdateNetworkVirtualNetworkExists() throws IOException  {
+        Activator.apiConnector = mockedApiConnector;
+        NeutronNetwork neutronNetwork = defaultNeutronObject();
+        NeutronNetwork delta_neutronNetwork = defaultNeutronObjectUpdate();
+        when(mockedApiConnector.findById(VirtualNetwork.class,neutronNetwork.getNetworkUUID())).thenReturn(null);
+        assertEquals(HttpURLConnection.HTTP_FORBIDDEN, networkHandler.canUpdateNetwork(delta_neutronNetwork, neutronNetwork));
+    }
+
+    /* Test method to check neutron network update fails with Internal Server Error */
+
+    @Test
+    public void testUpdateNetworkInternalError() throws IOException {
+        Activator.apiConnector = mockedApiConnector;
+        NeutronNetwork neutronNetwork = defaultNeutronObject();
+        NeutronNetwork delta_neutronNetwork = defaultNeutronObjectUpdate();
+        mockedVirtualNetwork.setName(delta_neutronNetwork.getNetworkName());
+        when(mockedApiConnector.findById(VirtualNetwork.class,neutronNetwork.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
+        when(mockedApiConnector.update(mockedVirtualNetwork)).thenReturn(false);
+        assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, networkHandler.canUpdateNetwork(delta_neutronNetwork, neutronNetwork));
+    }
+
+    /* Test method to check neutron network update with HTTP OK */
+
+    @Test
+    public void testUpdateNetwork() throws IOException  {
+        Activator.apiConnector = mockedApiConnector;
+        NeutronNetwork neutronNetwork = defaultNeutronObject();
+        NeutronNetwork delta_neutronNetwork = defaultNeutronObjectUpdate();
+        mockedVirtualNetwork.setName(delta_neutronNetwork.getNetworkName());
+        when(mockedApiConnector.findById(VirtualNetwork.class,neutronNetwork.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
+        when(mockedApiConnector.update(mockedVirtualNetwork)).thenReturn(true);
+        assertEquals(HttpURLConnection.HTTP_OK, networkHandler.canUpdateNetwork(delta_neutronNetwork, neutronNetwork));
+     }
 }
