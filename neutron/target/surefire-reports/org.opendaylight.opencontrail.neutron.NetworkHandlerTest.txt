@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: org.opendaylight.opencontrail.neutron.NetworkHandlerTest
+-------------------------------------------------------------------------------
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.054 sec - in org.opendaylight.opencontrail.neutron.NetworkHandlerTest
