@@ -6,14 +6,14 @@
   </prerequisites>
 
   <parent>
-    <groupId>org.opendaylight.oc</groupId>
-    <artifactId>commons.oc</artifactId>
-    <version>1.4.2-SNAPSHOT</version>
+    <groupId>org.opendaylight.opencontrail</groupId>
+    <artifactId>commons.opencontrail</artifactId>
+    <version>0.1</version>
     <relativePath>commons/parent</relativePath>
   </parent>
-  <groupId>org.opendaylight.oc</groupId>
-  <artifactId>oc.project</artifactId>
-  <version>0.4.2-SNAPSHOT</version>
+  <groupId>org.opendaylight.opencontrail</groupId>
+  <artifactId>opencontrail.project</artifactId>
+  <version>0.1</version>
   <packaging>pom</packaging>
   <properties>
   <sonar.host.url> http://localhost:9000/ </sonar.host.url>
@@ -22,5 +22,4 @@
     <module>neutron</module>
     <module>commons/parent</module>
   </modules>
-
 </project>
