@@ -191,8 +191,9 @@ public class SubnetHandler implements INeutronSubnetAware {
                 for (ObjectReference<VnSubnetsType> ref : vn.getNetworkIpam()) {
                     vnSubnetsType = ref.getAttr();
                 }
+            } else {
+                vnSubnetsType.addIpamSubnets(subnetType, subnet.getGatewayIP(), subnet.getSubnetUUID());
             }
-            vnSubnetsType.addIpamSubnets(subnetType, subnet.getGatewayIP(), subnet.getSubnetUUID());
             vn.setNetworkIpam(ipam, vnSubnetsType);
         }
         return vn;
@@ -269,7 +270,7 @@ public class SubnetHandler implements INeutronSubnetAware {
                     LOGGER.warn("Subnet upadtion failed..");
                     return HttpURLConnection.HTTP_INTERNAL_ERROR;
                 } else {
-                    LOGGER.info(" Subnet " + originalSubnet.getCidr() + " sucessfully updated with gateway IP : " + originalSubnet.getGatewayIP());
+                    LOGGER.info(" Subnet " + originalSubnet.getCidr() + " sucessfully updated with gateway IP : " + deltaSubnet.getGatewayIP());
                     return HttpURLConnection.HTTP_OK;
                 }
             } else {
@@ -347,7 +348,7 @@ public class SubnetHandler implements INeutronSubnetAware {
         }
     }
 
-    private boolean validGatewayIP(NeutronSubnet subnet, String ipAddress) {
+    boolean validGatewayIP(NeutronSubnet subnet, String ipAddress) {
         try {
 
             SubnetUtils util = new SubnetUtils(subnet.getCidr());
@@ -416,10 +417,6 @@ public class SubnetHandler implements INeutronSubnetAware {
                     virtualNetwork.addNetworkIpam(ipam, vnSubnetsType);
                 } else {
                     virtualNetwork.clearNetworkIpam();
-                    NetworkIpam networkIpam = new NetworkIpam();
-                    networkIpam.setParent(null);
-                    networkIpam.setName(null);
-                    virtualNetwork.setNetworkIpam(networkIpam, null);
                 }
                 return apiConnector.update(virtualNetwork);
             } else {

@@ -62,9 +62,8 @@ public class PortHandler implements INeutronPortAware {
             LOGGER.error("Port Device Id or Port Uuid can't be empty/null...");
             return HttpURLConnection.HTTP_BAD_REQUEST;
         }
-        if (neutronPort.getName() == null || neutronPort.getName().equals("")) {
-            LOGGER.error("Port name can't be empty/null...");
-            return HttpURLConnection.HTTP_BAD_REQUEST;
+        if(neutronPort.getDeviceID().equals("")) {
+            neutronPort.setDeviceID(null);
         }
         if (neutronPort.getTenantID() == null) {
             LOGGER.error("Tenant ID can't be null...");
@@ -499,7 +498,7 @@ public class PortHandler implements INeutronPortAware {
             VirtualMachineInterface virtualMachineInterface;
             virtualMachineInterface = (VirtualMachineInterface) apiConnector.findById(VirtualMachineInterface.class, neutronPort.getPortUUID());
             if (neutronPort.getName().matches(virtualMachineInterface.getDisplayName())
-                    && neutronPort.getDeviceID().matches(virtualMachineInterface.getVirtualMachine().get(0).getUuid())) {   //TODO : Fix Null pointer exception (Dependent on VM Refs issue)
+                    && neutronPort.getDeviceID().matches(virtualMachineInterface.getVirtualMachine().get(0).getUuid())) { // TODO : Fix Null pointer exception (Dependent on VM Refs issue)
                 LOGGER.info("Port updatation verified....");
             } else {
                 LOGGER.info("Port updatation failed....");
@@ -519,12 +518,18 @@ public class PortHandler implements INeutronPortAware {
      */
     private String uuidFormater(String uuid) {
         String uuidPattern = null;
-        String id1 = uuid.substring(0, 8);
-        String id2 = uuid.substring(8, 12);
-        String id3 = uuid.substring(12, 16);
-        String id4 = uuid.substring(16, 20);
-        String id5 = uuid.substring(20, 32);
-        uuidPattern = (id1 + "-" + id2 + "-" + id3 + "-" + id4 + "-" + id5);
+        try {
+            String id1 = uuid.substring(0, 8);
+            String id2 = uuid.substring(8, 12);
+            String id3 = uuid.substring(12, 16);
+            String id4 = uuid.substring(16, 20);
+            String id5 = uuid.substring(20, 32);
+            uuidPattern = (id1 + "-" + id2 + "-" + id3 + "-" + id4 + "-" + id5);
+
+        } catch (Exception e) {
+            LOGGER.error("UUID is not in correct format ");
+            LOGGER.error("Exception :" + e);
+        }
         return uuidPattern;
     }
 }

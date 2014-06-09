@@ -35,7 +35,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opendaylight.controller.networkconfig.neutron.NeutronNetwork;
 import org.powermock.api.easymock.PowerMock;
-//import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -112,26 +111,6 @@ public class PortHandlerTest {
     public void testCanCreatePortNull() {
         Activator.apiConnector = mockedApiConnector;
         assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, porthandler.canCreatePort(null));
-    }
-
-    /* Test method to check if neutron port name is null */
-    @Test
-    public void testCanCreatePortNameNull() {
-        Activator.apiConnector = mockedApiConnector;
-        NeutronPort neutronPort = new NeutronPort();
-        neutronPort.setPortUUID("64a271fe-0216-46bc-a3e6-1ff582fbd324");
-        neutronPort.setName(null);
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, porthandler.canCreatePort(neutronPort));
-    }
-
-    /* Test method to check if neutron port name is empty */
-    @Test
-    public void testCanCreatePortNameEmtpy() {
-        Activator.apiConnector = mockedApiConnector;
-        NeutronPort neutronPort = new NeutronPort();
-        neutronPort.setPortUUID("64a271fe-0216-46bc-a3e6-1ff582fbd324");
-        neutronPort.setName("");
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, porthandler.canCreatePort(neutronPort));
     }
 
     /* Test method to check if neutron port device ID is empty */
@@ -283,50 +262,6 @@ public class PortHandlerTest {
         when(mockedApiConnector.findById(VirtualMachineInterface.class, neutronPort.getID())).thenReturn(null);
         assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, porthandler.canDeletePort(neutronPort));
     }
-
-    /*
-     * Test method to check port delete with instanceIPs null
-     *
-     * @Test public void testcanDeletePortOK() throws IOException {
-     * Activator.apiConnector = mockedApiConnector; NeutronPort neutronPort =
-     * defaultNeutronPortObject();
-     * when(mockedApiConnector.findById(VirtualMachineInterface.class,
-     * neutronPort.getID())).thenReturn(mockedVirtualMachineInterface);
-     * when(mockedVirtualMachineInterface
-     * .getInstanceIpBackRefs()).thenReturn(null);
-     * assertEquals(HttpURLConnection.HTTP_OK,
-     * porthandler.canDeletePort(neutronPort)); }
-     */
-
-    /*
-     * Test method to check port delete with instanceIPs not null
-     *
-     * @Test public void testcanDeletePortOKInstanceIPsNotNull() throws
-     * IOException { Activator.apiConnector = mockedApiConnector; NeutronPort
-     * neutronPort = defaultNeutronPortObject();
-     * when(mockedApiConnector.findById(VirtualMachineInterface.class,
-     * neutronPort.getID())).thenReturn(mockedVirtualMachineInterface);
-     * List<ObjectReference<ApiPropertyBase>> instanceIPs = new
-     * ArrayList<ObjectReference<ApiPropertyBase>>();
-     * when(mockedVirtualMachineInterface
-     * .getInstanceIpBackRefs()).thenReturn(instanceIPs);
-     * assertEquals(HttpURLConnection.HTTP_OK,
-     * porthandler.canDeletePort(neutronPort)); }
-     */
-
-    /*
-     * Test method to check port delete with instanceIPs null
-     *
-     * @Test public void testcanDeletePortOK() throws IOException {
-     * Activator.apiConnector = mockedApiConnector; NeutronPort neutronPort =
-     * defaultNeutronPortObject();
-     * when(mockedApiConnector.findById(VirtualMachineInterface.class,
-     * neutronPort.getID())).thenReturn(mockedVirtualMachineInterface);
-     * when(mockedVirtualMachineInterface
-     * .getInstanceIpBackRefs()).thenReturn(null);
-     * assertEquals(HttpURLConnection.HTTP_OK,
-     * porthandler.canDeletePort(neutronPort)); }
-     */
 
     /* Test method to update port with null neutron port and delta port */
     @Test

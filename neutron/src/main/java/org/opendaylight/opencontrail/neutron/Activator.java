@@ -33,7 +33,7 @@ public class Activator extends ComponentActivatorAbstractBase {
      */
     @Override
     public void init() {
-        LOGGER.info("opencontrail Plugin service Registered");
+        LOGGER.info("plugin2oc Plugin service Registered");
         apiConnector = getApiConnection();
     }
 
@@ -44,8 +44,8 @@ public class Activator extends ComponentActivatorAbstractBase {
      * /opendaylight/src/main/resources/configuration/config.ini
      */
     public ApiConnector getApiConnection() {
-        String ipAddress = System.getProperty("opencontrail.apiserver.ipaddress");
-        String port = System.getProperty("opencontrail.apiserver.port");
+        String ipAddress = System.getProperty("plugin2oc.apiserver.ipaddress");
+        String port = System.getProperty("plugin2oc.apiserver.port");
         int portNumber = 0;
         try {
             portNumber = Integer.parseInt(port);
