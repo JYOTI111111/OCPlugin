@@ -1,6 +1,0 @@
-eclipse.preferences.version=1
-extraProperties=sonar.host.url\=http\://localhost\:9000/\r\nsonar.java.coveragePlugin\=jacoco\r\nsonar.skippedModules\=org.openflow.openflowj,net.sf.jung2\r\nsonar.language\=java
-lastAnalysisDate=1401429534000
-projectKey=org.opendaylight.opencontrail\:opencontrail.neutron\:root-private-view
-serverUrl=http\://localhost\:9000
-version=2
