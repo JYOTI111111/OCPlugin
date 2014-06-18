@@ -6,7 +6,7 @@ d * Copyright (C) 2014 Juniper Networks, Inc.
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  *
  */
-package org.opendaylight.opencontrail.neutron;
+package org.opendaylight.plugin2oc.neutron;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -268,16 +268,6 @@ public class PortHandlerTest {
     public void testcanUpdatePortNull() throws IOException {
         Activator.apiConnector = mockedApiConnector;
         assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, porthandler.canUpdatePort(null, null));
-    }
-
-    /* Test method to update port with empty Neutron Port name */
-    @Test
-    public void testcanUpdatePortEmptyName() throws IOException {
-        Activator.apiConnector = mockedApiConnector;
-        NeutronPort neutronPort = defaultNeutronPortObject();
-        NeutronPort dummyNeutronPort = detaNeutronPort();
-        dummyNeutronPort.setName("");
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, porthandler.canUpdatePort(dummyNeutronPort, neutronPort));
     }
 
     /* Test method to update port with mac address */

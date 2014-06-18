@@ -6,7 +6,7 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  *
  */
-package org.opendaylight.opencontrail.neutron;
+package org.opendaylight.plugin2oc.neutron;
 
 import net.juniper.contrail.api.ApiConnector;
 import net.juniper.contrail.api.ApiConnectorFactory;
@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * OSGi bundle activator for the opencontrail Neutron Interface.
+ * OSGi bundle activator for the plugin2oc Neutron Interface.
  */
 public class Activator extends ComponentActivatorAbstractBase {
     static ApiConnector apiConnector = null;

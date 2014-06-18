@@ -3,12 +3,12 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.opendaylight.opencontrail</groupId>
-        <artifactId>commons.opencontrail</artifactId>
+        <groupId>org.opendaylight.plugin2oc</groupId>
+        <artifactId>commons.plugin2oc</artifactId>
         <version>0.1</version>
         <relativePath>../commons/parent</relativePath>
     </parent>
-    <artifactId>opencontrail.neutron</artifactId>
+    <artifactId>plugin2oc.neutron</artifactId>
     <version>0.1</version>
     <packaging>bundle</packaging>
     <repositories>
@@ -48,7 +48,7 @@
                             *
                         </Import-Package>
                         <Bundle-Activator>
-                            org.opendaylight.opencontrail.neutron.Activator
+                            org.opendaylight.plugin2oc.neutron.Activator
                         </Bundle-Activator>
                         <Embed-Dependency>httpclient,httpcore;type=!pom;inline=false</Embed-Dependency>
                         <Export-Package>

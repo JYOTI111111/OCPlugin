@@ -1,4 +1,4 @@
-package org.opendaylight.opencontrail.neutron;
+package org.opendaylight.plugin2oc.neutron;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
