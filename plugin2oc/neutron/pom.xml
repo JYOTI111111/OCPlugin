@@ -29,7 +29,7 @@
         <sonar.host.url> http://localhost:9000/</sonar.host.url>
     </properties>
     <build>
-        <defaultGoal>install</defaultGoal>
+        <defaultGoal>    install</defaultGoal>
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
