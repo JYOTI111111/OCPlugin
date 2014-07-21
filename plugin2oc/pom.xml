@@ -19,7 +19,7 @@
   <sonar.host.url> http://localhost:9000/ </sonar.host.url>
   </properties>
   <modules>
-    <module>neutron</module>
+    <module>neutron </module>
     <module>commons/parent</module>
   </modules>
 </project>
