@@ -1,10 +1,16 @@
+/*
+d * Copyright (C) 2014 Juniper Networks, Inc.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ *
+ */
 package org.opendaylight.plugin2oc.neutron;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -13,6 +19,7 @@ import java.util.List;
 
 import net.juniper.contrail.api.ApiConnector;
 import net.juniper.contrail.api.ObjectReference;
+import net.juniper.contrail.api.types.NetworkIpam;
 import net.juniper.contrail.api.types.SubnetType;
 import net.juniper.contrail.api.types.VirtualNetwork;
 import net.juniper.contrail.api.types.VnSubnetsType;
@@ -23,6 +30,9 @@ import org.junit.Test;
 import org.opendaylight.controller.networkconfig.neutron.NeutronSubnet;
 import org.opendaylight.controller.networkconfig.neutron.NeutronSubnet_IPAllocationPool;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 /**
  * Test Class for Subnet.
  */
@@ -31,6 +41,7 @@ public class SubnetHandlerTest {
     VirtualNetwork mockedVirtualNetwork = mock(VirtualNetwork.class);
     SubnetHandler mockedSubnetHandler = mock(SubnetHandler.class);
     ApiConnector mockedApiConnector = mock(ApiConnector.class);
+    NetworkIpam mockedNetworkIpam = mock(NetworkIpam.class);
 
     @Before
     public void beforeTest() {
@@ -72,6 +83,11 @@ public class SubnetHandlerTest {
         return subnet;
     }
 
+    public NeutronSubnet defaultOriginalSubnet() {
+        NeutronSubnet subnet = new NeutronSubnet();
+        return subnet;
+    }
+
     /* Test method to check if neutron subnet is null */
     @Test
     public void testCanCreateSubnetNull() {
@@ -98,40 +114,17 @@ public class SubnetHandlerTest {
     }
 
     /* Test method to check if virtual network is null */
-
     @Test
     public void testCanCreateSubnetVirtualNetworkNull() throws IOException {
         Activator.apiConnector = mockedApiConnector;
         NeutronSubnet neutronSubnet = defaultSubnetObject();
-        when(mockedVirtualNetwork.getNetworkIpam()).thenReturn(null);
+        when(mockedApiConnector.findById(VirtualNetwork.class, neutronSubnet.getNetworkUUID())).thenReturn(null);
         assertEquals(HttpURLConnection.HTTP_FORBIDDEN, subnetHandler.canCreateSubnet(neutronSubnet));
-    }
-
-    /* Test method to check if subnet can be created with IpamRefs null */
-    @Test
-    public void testCanCreateSubnet() throws IOException {
-        Activator.apiConnector = mockedApiConnector;
-        NeutronSubnet neutronSubnet = defaultSubnetObject();
-        when(mockedApiConnector.findById(VirtualNetwork.class, neutronSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
-        when(mockedVirtualNetwork.getNetworkIpam()).thenReturn(null);
-        when(mockedApiConnector.update(mockedVirtualNetwork)).thenReturn(true);
-        assertEquals(HttpURLConnection.HTTP_OK, subnetHandler.canCreateSubnet(neutronSubnet));
-    }
-
-    /* Test method to check if subnet creation returns Internal Server Error */
-    @Test
-    public void testCanCreateSubnetException() throws IOException {
-        Activator.apiConnector = mockedApiConnector;
-        NeutronSubnet neutronSubnet = defaultSubnetObject();
-        when(mockedApiConnector.findById(VirtualNetwork.class, neutronSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
-        when(mockedVirtualNetwork.getNetworkIpam()).thenReturn(null);
-        when(mockedApiConnector.update(mockedVirtualNetwork)).thenReturn(false);
-        assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, subnetHandler.canCreateSubnet(neutronSubnet));
     }
 
     /* Test method to check if subnet already exists */
     @Test
-    public void testCanCreateSubnetExists() throws IOException {
+    public void testCanCreateSubnetAlreadyExist() throws IOException {
         Activator.apiConnector = mockedApiConnector;
         NeutronSubnet neutronSubnet = defaultSubnetObject();
         when(mockedApiConnector.findById(VirtualNetwork.class, neutronSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
@@ -153,6 +146,36 @@ public class SubnetHandlerTest {
         }
         when(mockedVirtualNetwork.getNetworkIpam()).thenReturn(ipamRefs);
         assertEquals(HttpURLConnection.HTTP_FORBIDDEN, subnetHandler.canCreateSubnet(neutronSubnet));
+    }
+
+    /* Test method to check if subnet can create Ok */
+    @Test
+    public void testCanCreateSubnetOK() throws IOException {
+        Activator.apiConnector = mockedApiConnector;
+        NeutronSubnet neutronSubnet = defaultSubnetObject();
+        when(mockedApiConnector.findById(VirtualNetwork.class, neutronSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
+        when(mockedVirtualNetwork.getNetworkIpam()).thenReturn(null);
+        assertEquals(HttpURLConnection.HTTP_OK, subnetHandler.canCreateSubnet(neutronSubnet));
+    }
+
+    /* Test method to check if add subnet fails */
+    @Test
+    public void testAddSubnetFalse() throws IOException {
+        Activator.apiConnector = mockedApiConnector;
+        NeutronSubnet neutronSubnet = defaultSubnetObject();
+        when(mockedApiConnector.findById(VirtualNetwork.class, neutronSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
+        when(mockedApiConnector.update(mockedVirtualNetwork)).thenReturn(false);
+        assertEquals(false, subnetHandler.addSubnet(neutronSubnet));
+    }
+
+    /* Test method to check if subnet is added successfully */
+    @Test
+    public void testAddSubnetTrue() throws IOException {
+        Activator.apiConnector = mockedApiConnector;
+        NeutronSubnet neutronSubnet = defaultSubnetObject();
+        when(mockedApiConnector.findById(VirtualNetwork.class, neutronSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
+        when(mockedApiConnector.update(mockedVirtualNetwork)).thenReturn(true);
+        assertEquals(true, subnetHandler.addSubnet(neutronSubnet));
     }
 
     /* Test method to check ipPrefix */
@@ -181,26 +204,6 @@ public class SubnetHandlerTest {
     public void testcanUpdateSubnetNull() {
         Activator.apiConnector = mockedApiConnector;
         assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, subnetHandler.canUpdateSubnet(null, null));
-    }
-
-    /* Test method to check if updated subnet gateway ip is empty */
-    @Test
-    public void testcanUpdateSubnetGatewayEmpty() {
-        Activator.apiConnector = mockedApiConnector;
-        NeutronSubnet neutronSubnet = defaultSubnetObject();
-        NeutronSubnet deltaSubnet = new NeutronSubnet();
-        deltaSubnet.setGatewayIP("");
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, subnetHandler.canUpdateSubnet(deltaSubnet, neutronSubnet));
-    }
-
-    /* Test method to check if gateway ip is valide for update */
-    @Test
-    public void testcanUpdateSubnetInvalidGateway() throws IOException {
-        Activator.apiConnector = mockedApiConnector;
-        NeutronSubnet neutronSubnet = defaultSubnetObject();
-        NeutronSubnet deltaSubnet = defaultDeltaSubnet();
-        deltaSubnet.setGatewayIP("20.0.0.200");
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, subnetHandler.canUpdateSubnet(deltaSubnet, neutronSubnet));
     }
 
     /* Test method to check if subnets do not exist */
@@ -242,17 +245,22 @@ public class SubnetHandlerTest {
             ipamRefs.add(ref);
         }
         when(mockedVirtualNetwork.getNetworkIpam()).thenReturn(ipamRefs);
-        when(mockedApiConnector.update(mockedVirtualNetwork)).thenReturn(true);
         assertEquals(HttpURLConnection.HTTP_OK, subnetHandler.canUpdateSubnet(deltaSubnet, neutronSubnet));
     }
 
-    /* Test method to check if subnet already exists and update subnet fails */
+    /*
+     * Test method to check if subnet already exists and update subnet
+     * successfully
+     */
     @Test
-    public void testcanUpdateSubnetFail() throws IOException {
+    public void testUpdateSubnet() throws IOException {
         Activator.apiConnector = mockedApiConnector;
         NeutronSubnet neutronSubnet = defaultSubnetObject();
         NeutronSubnet deltaSubnet = defaultDeltaSubnet();
-        when(mockedApiConnector.findById(VirtualNetwork.class, neutronSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
+        NeutronSubnet originalSubnet = neutronSubnet;
+        subnetHandler.setOriginalSubnet(originalSubnet);
+        // when(originalSubnet.getNetworkUUID()).thenReturn(value);
+        when(mockedApiConnector.findById(VirtualNetwork.class, originalSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
         VnSubnetsType vnSubnetType = new VnSubnetsType();
         ObjectReference<VnSubnetsType> ref = new ObjectReference<>();
         List<ObjectReference<VnSubnetsType>> ipamRefs = new ArrayList<ObjectReference<VnSubnetsType>>();
@@ -271,8 +279,8 @@ public class SubnetHandlerTest {
             ipamRefs.add(ref);
         }
         when(mockedVirtualNetwork.getNetworkIpam()).thenReturn(ipamRefs);
-        when(mockedApiConnector.update(mockedVirtualNetwork)).thenReturn(false);
-        assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, subnetHandler.canUpdateSubnet(deltaSubnet, neutronSubnet));
+        when(mockedApiConnector.update(mockedVirtualNetwork)).thenReturn(true);
+        assertEquals(true, subnetHandler.updateSubnet(neutronSubnet.getSubnetUUID(), deltaSubnet));
     }
 
     /* Tets method to check if a subnet deletion terminate with Internal_Error */
@@ -280,80 +288,6 @@ public class SubnetHandlerTest {
     public void testCanDeleteSubnet() throws IOException {
         Activator.apiConnector = mockedApiConnector;
         NeutronSubnet neutronSubnet = defaultSubnetObject();
-        when(mockedApiConnector.findById(VirtualNetwork.class, neutronSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
-        when(mockedVirtualNetwork.getNetworkIpam()).thenReturn(null);
-        assertEquals(HttpURLConnection.HTTP_INTERNAL_ERROR, subnetHandler.canDeleteSubnet(neutronSubnet));
-
-    }
-
-    /*
-     * Tets method to check if a subnet is deleted from the network when
-     * vnSubnetsType.getIpamSubnets() is not null
-     */
-    @Test
-    public void testCanDeleteSubnetTrue() throws IOException {
-        Activator.apiConnector = mockedApiConnector;
-        NeutronSubnet neutronSubnet = defaultSubnetObject();
-        when(mockedApiConnector.findById(VirtualNetwork.class, neutronSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
-        List<ObjectReference<VnSubnetsType>> ipamRefs = mockedVirtualNetwork.getNetworkIpam();
-        VnSubnetsType vnSubnetType = new VnSubnetsType();
-        ObjectReference<VnSubnetsType> ref = new ObjectReference<>();
-        List<VnSubnetsType.IpamSubnetType> subnets = new ArrayList<VnSubnetsType.IpamSubnetType>();
-        VnSubnetsType.IpamSubnetType subnetType = new VnSubnetsType.IpamSubnetType();
-        SubnetType type = new SubnetType();
-        List<String> temp = new ArrayList<String>();
-        for (int i = 0; i < 1; i++) {
-            subnetType.setSubnet(type);
-            subnetType.getSubnet().setIpPrefix("10.0.0.0");
-            subnetType.getSubnet().setIpPrefixLen(24);
-            subnets.add(subnetType);
-            vnSubnetType.addIpamSubnets(subnetType);
-            ref.setReference(temp, vnSubnetType, "", "");
-            ipamRefs.add(ref);
-        }
-        VnSubnetsType.IpamSubnetType subnetType1 = new VnSubnetsType.IpamSubnetType();
-        SubnetType type1 = new SubnetType();
-        for (int i = 0; i < 1; i++) {
-            subnetType1.setSubnet(type1);
-            subnetType1.getSubnet().setIpPrefix("10.0.1.0");
-            subnetType1.getSubnet().setIpPrefixLen(24);
-            subnets.add(subnetType1);
-            vnSubnetType.addIpamSubnets(subnetType1);
-            ref.setReference(temp, vnSubnetType, "", "");
-            ipamRefs.add(ref);
-        }
-        when(mockedVirtualNetwork.getNetworkIpam()).thenReturn(ipamRefs);
-        when(mockedApiConnector.update(mockedVirtualNetwork)).thenReturn(true);
-        assertEquals(HttpURLConnection.HTTP_NO_CONTENT, subnetHandler.canDeleteSubnet(neutronSubnet));
-    }
-
-    /*
-     * Test method to check if a subnet is deleted from the network when
-     * vnSubnetsType.getIpamSubnets() is null
-     */
-    @Test
-    public void testCanDeleteSubnetNullGetIpamSubnets() throws IOException {
-        Activator.apiConnector = mockedApiConnector;
-        NeutronSubnet neutronSubnet = defaultSubnetObject();
-        when(mockedApiConnector.findById(VirtualNetwork.class, neutronSubnet.getNetworkUUID())).thenReturn(mockedVirtualNetwork);
-        List<ObjectReference<VnSubnetsType>> ipamRefs = mockedVirtualNetwork.getNetworkIpam();
-        VnSubnetsType vnSubnetType = new VnSubnetsType();
-        ObjectReference<VnSubnetsType> ref = new ObjectReference<>();
-        List<VnSubnetsType.IpamSubnetType> subnets = new ArrayList<VnSubnetsType.IpamSubnetType>();
-        VnSubnetsType.IpamSubnetType subnetType = new VnSubnetsType.IpamSubnetType();
-        SubnetType type = new SubnetType();
-        List<String> temp = new ArrayList<String>();
-        for (int i = 0; i < 1; i++) {
-            subnetType.setSubnet(type);
-            subnetType.getSubnet().setIpPrefix("10.0.0.0");
-            subnetType.getSubnet().setIpPrefixLen(24);
-            subnets.add(subnetType);
-            vnSubnetType.addIpamSubnets(subnetType);
-            ref.setReference(temp, vnSubnetType, "", "");
-            ipamRefs.add(ref);
-        }
-        when(mockedVirtualNetwork.getNetworkIpam()).thenReturn(ipamRefs);
-        when(mockedApiConnector.update(mockedVirtualNetwork)).thenReturn(true);
-        assertEquals(HttpURLConnection.HTTP_NO_CONTENT, subnetHandler.canDeleteSubnet(neutronSubnet));
+        assertEquals(HttpURLConnection.HTTP_OK, subnetHandler.canDeleteSubnet(neutronSubnet));
     }
 }

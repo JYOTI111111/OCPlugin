@@ -12,9 +12,16 @@ import net.juniper.contrail.api.ApiConnector;
 import net.juniper.contrail.api.ApiConnectorFactory;
 
 import org.apache.felix.dm.Component;
+import org.opendaylight.controller.networkconfig.neutron.INeutronFloatingIPAware;
+import org.opendaylight.controller.networkconfig.neutron.INeutronFloatingIPCRUD;
 import org.opendaylight.controller.networkconfig.neutron.INeutronNetworkAware;
+import org.opendaylight.controller.networkconfig.neutron.INeutronNetworkCRUD;
 import org.opendaylight.controller.networkconfig.neutron.INeutronPortAware;
+import org.opendaylight.controller.networkconfig.neutron.INeutronPortCRUD;
+import org.opendaylight.controller.networkconfig.neutron.INeutronRouterAware;
+import org.opendaylight.controller.networkconfig.neutron.INeutronRouterCRUD;
 import org.opendaylight.controller.networkconfig.neutron.INeutronSubnetAware;
+import org.opendaylight.controller.networkconfig.neutron.INeutronSubnetCRUD;
 import org.opendaylight.controller.sal.binding.api.BindingAwareBroker;
 import org.opendaylight.controller.sal.core.ComponentActivatorAbstractBase;
 import org.slf4j.Logger;
@@ -75,7 +82,7 @@ public class Activator extends ComponentActivatorAbstractBase {
      */
     @Override
     public Object[] getImplementations() {
-        Object[] res = { NetworkHandler.class, SubnetHandler.class, PortHandler.class };
+        Object[] res = { NetworkHandler.class, SubnetHandler.class, PortHandler.class, RouterHandler.class,FloatingIpHandler.class };
         return res;
     }
 
@@ -97,13 +104,19 @@ public class Activator extends ComponentActivatorAbstractBase {
     @Override
     public void configureInstance(Component c, Object imp, String containerName) {
         if (imp.equals(NetworkHandler.class)) {
-            c.setInterface(INeutronNetworkAware.class.getName(), null);
+            c.setInterface(new String[] { INeutronNetworkCRUD.class.getName(), INeutronNetworkAware.class.getName() }, null);
         }
         if (imp.equals(SubnetHandler.class)) {
-            c.setInterface(INeutronSubnetAware.class.getName(), null);
+            c.setInterface(new String[] { INeutronSubnetCRUD.class.getName(), INeutronSubnetAware.class.getName() }, null);
         }
         if (imp.equals(PortHandler.class)) {
-            c.setInterface(INeutronPortAware.class.getName(), null);
+            c.setInterface(new String[] { INeutronPortCRUD.class.getName(), INeutronPortAware.class.getName() }, null);
+        }
+        if (imp.equals(RouterHandler.class)) {
+            c.setInterface(new String[] { INeutronRouterCRUD.class.getName(), INeutronRouterAware.class.getName() }, null);
+        }
+        if (imp.equals(FloatingIpHandler.class)) {
+            c.setInterface(new String[] { INeutronFloatingIPCRUD.class.getName(), INeutronFloatingIPAware.class.getName() }, null);
         }
         // Create service dependencies.
         c.add(createServiceDependency().setService(BindingAwareBroker.class).setCallbacks("setBindingAwareBroker", "unsetBindingAwareBroker")
